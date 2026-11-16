@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueueMind AI</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f2f5fc;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            width: 90%;
+            max-width: 430px;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            color: #2947a9;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #2947a9;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .cancel-button {
+            background: #c0392b;
+        }
+
+        #result {
+            margin-top: 20px;
+            text-align: center;
+            line-height: 1.8;
+            color: #222;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>QueueMind AI</h1>
+    <p class="subtitle">Smart Queue Management System</p>
+
+    <form id="queueForm">
+
+        <label for="name">Customer Name</label>
+
+        <input
+            type="text"
+            id="name"
+            placeholder="Enter your name"
+            required
+        >
+
+        <button type="submit">Join Queue</button>
+
+    </form>
+
+    <hr>
+
+    <h3 style="margin: 20px 0;">Cancel Your Token</h3>
+
+    <input
+        type="number"
+        id="token"
+        placeholder="Enter your token number"
+    >
+
+    <button class="cancel-button" onclick="cancelToken()">
+        Cancel Token
+    </button>
+
+    <div id="result"></div>
+
+</div>
+
+<script>
+
+document.getElementById("queueForm")
+.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const name = document.getElementById("name").value;
+
+    try {
+
+        const response = await fetch("/api/queue/join", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name: name })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            document.getElementById("result").innerText =
+                data.error || "Something went wrong";
+            return;
+        }
+
+        document.getElementById("result").innerHTML = `
+            <h3>Successfully Joined!</h3>
+            <p>Your Token: ${data.customer.token_number}</p>
+            <p>Estimated Waiting Time: ${data.customer.waiting_time} minutes</p>
+        `;
+
+        document.getElementById("queueForm").reset();
+
+    } catch (error) {
+        document.getElementById("result").innerText =
+            "Unable to connect to the server.";
+    }
+
+});
+
+
+async function cancelToken() {
+
+    const token = document.getElementById("token").value;
+
+    if (!token || Number(token) <= 0) {
+        document.getElementById("result").innerText =
+            "Please enter a valid token number.";
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            `/api/queue/cancel/${token}`,
+            { method: "DELETE" }
+        );
+
+        const data = await response.json();
+
+        document.getElementById("result").innerText =
+            data.message || data.error;
+
+        if (response.ok) {
+            document.getElementById("token").value = "";
+        }
+
+    } catch (error) {
+        document.getElementById("result").innerText =
+            "Unable to connect to the server.";
+    }
+
+}
+
+</script>
+
+</body>
+</html>

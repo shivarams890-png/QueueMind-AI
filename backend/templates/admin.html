@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QueueMind Admin</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f5fc;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+        }
+
+        h1 {
+            color: #2947a9;
+            text-align: center;
+        }
+
+        .summary {
+            text-align: center;
+            margin: 25px 0;
+            font-size: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background: #2947a9;
+            color: white;
+        }
+
+        button {
+            background: #2947a9;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .action {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>QueueMind AI</h1>
+    <h2>Admin Dashboard</h2>
+
+    <div class="summary">
+        Total Waiting Customers:
+        <strong id="total">0</strong>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Token</th>
+                <th>Customer Name</th>
+                <th>Waiting Time</th>
+            </tr>
+        </thead>
+
+        <tbody id="queueTable"></tbody>
+    </table>
+
+    <div class="action">
+        <button onclick="serveNext()">Serve Next Customer</button>
+    </div>
+
+    <p id="message"></p>
+
+</div>
+
+<script>
+
+async function loadQueue() {
+
+    const response = await fetch("/api/admin/queue");
+    const data = await response.json();
+
+    document.getElementById("total").innerText =
+        data.total_waiting;
+
+    const table = document.getElementById("queueTable");
+    table.innerHTML = "";
+
+    data.customers.forEach(customer => {
+
+        table.innerHTML += `
+            <tr>
+                <td>${customer.token_number}</td>
+                <td>${customer.name}</td>
+                <td>${customer.waiting_time} minutes</td>
+            </tr>
+        `;
+
+    });
+
+}
+
+async function serveNext() {
+
+    const response = await fetch("/api/admin/serve", {
+        method: "POST"
+    });
+
+    const data = await response.json();
+
+    document.getElementById("message").innerText =
+        data.message;
+
+    loadQueue();
+
+}
+
+loadQueue();
+
+</script>
+
+</body>
+</html>
