@@ -1,2 +1,2 @@
 # QueueMind-AI
-ml projet by 5 mem
+ml project by 5 mem
